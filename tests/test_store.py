@@ -13,17 +13,6 @@ def redis_cli():
 
 
 @pytest.fixture()
-def ban(request, redis_cli):
-    backend = store.RedisBanBackend("test_me", redis_cli)
-
-    def finalizer():
-        backend.reset()
-
-    request.addfinalizer(finalizer)
-    return backend
-
-
-@pytest.fixture()
 def counter(request, redis_cli):
     backend = store.RedisCounterBackend("test_me", redis_cli)
 
@@ -32,14 +21,6 @@ def counter(request, redis_cli):
 
     request.addfinalizer(finalizer)
     return backend
-
-
-def test_redis_ban(ban: store.RedisBanBackend):
-    uid = "test_id"
-    ban.ban(uid, 1)
-    assert ban.is_banned(uid) is True
-    time.sleep(1)
-    assert ban.is_banned(uid) is False
 
 
 def test_redis_counter(counter: store.RedisCounterBackend):

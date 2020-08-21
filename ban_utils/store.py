@@ -3,28 +3,6 @@ from abc import ABCMeta, abstractmethod
 from redis import Redis
 
 
-class BanBackendABC(metaclass=ABCMeta):
-
-    @abstractmethod
-    def reset(self) -> None:
-        """
-        clear all banned target
-        """
-        pass
-
-    @abstractmethod
-    def ban(self, unique_id: str, ttl: int, meta=None) -> None:
-        pass
-
-    @abstractmethod
-    def unban(self, unique_id: str) -> None:
-        pass
-
-    @abstractmethod
-    def is_banned(self, unique_id) -> bool:
-        pass
-
-
 class CounterABC(metaclass=ABCMeta):
     @abstractmethod
     def reset(self) -> None:
@@ -55,29 +33,6 @@ class RedisMixin:
         if len(keys) <= 0:
             return
         self._client.delete(*keys)
-
-
-class RedisBanBackend(BanBackendABC, RedisMixin):
-    def __init__(self, save_prefix: str, redis_client: Redis):
-        self._prefix = save_prefix + "_ban"
-        self._client = redis_client
-
-    def reset(self) -> None:
-        self._reset_all()
-
-    def ban(self, unique_id: str, ttl: int, meta: str = None) -> None:
-        if meta is None:
-            meta = ""
-        key = self._get_key(unique_id)
-        self._client.set(key, meta, ex=ttl)
-
-    def is_banned(self, unique_id) -> bool:
-        key = self._get_key(unique_id)
-        return self._client.get(key) is not None
-
-    def unban(self, unique_id: str) -> None:
-        key = self._get_key(unique_id)
-        self._client.delete(key)
 
 
 class RedisCounterBackend(CounterABC, RedisMixin):
