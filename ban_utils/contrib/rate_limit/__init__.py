@@ -9,12 +9,15 @@ def too_many2ban(
         counter: CounterABC,
         max_count2ban=10,
         counter_ttl=60 * 5,
+        enabled=True,
 ):
     _counter = counter
 
     def wrapper(fn):
         @wraps(fn)
         def wrapped(*args, **kwargs):
+            if not enabled:
+                return fn(*args, **kwargs)
             key = key_fn(*args, **kwargs)
             count = _counter.get(key)
             if count >= max_count2ban:
