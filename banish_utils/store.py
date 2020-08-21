@@ -6,40 +6,40 @@ from redis import Redis
 class BanBackendABC(metaclass=ABCMeta):
 
     @abstractmethod
-    def reset(self):
+    def reset(self) -> None:
         """
         clear all banned target
         """
         pass
 
     @abstractmethod
-    def ban(self, unique_id: str, ttl: int, meta=None):
+    def ban(self, unique_id: str, ttl: int, meta=None) -> None:
         pass
 
     @abstractmethod
-    def unban(self, unique_id: str):
+    def unban(self, unique_id: str) -> None:
         pass
 
     @abstractmethod
-    def is_banned(self, unique_id):
+    def is_banned(self, unique_id) -> bool:
         pass
 
 
 class CounterABC(metaclass=ABCMeta):
     @abstractmethod
-    def reset(self):
+    def reset(self) -> None:
         pass
 
     @abstractmethod
-    def get(self, unique_id):
+    def get(self, unique_id) -> int:
         pass
 
     @abstractmethod
-    def increment(self, unique_id, number, ttl):
+    def increment(self, unique_id, number, ttl) -> int:
         pass
 
     @abstractmethod
-    def delete(self, unique_id):
+    def delete(self, unique_id) -> None:
         pass
 
 
@@ -62,22 +62,22 @@ class RedisBanBackend(BanBackendABC, RedisMixin):
         self._prefix = save_prefix + "_ban"
         self._client = redis_client
 
-    def reset(self):
+    def reset(self) -> None:
         self._reset_all()
 
-    def ban(self, unique_id: str, ttl: int, meta: str = None):
+    def ban(self, unique_id: str, ttl: int, meta: str = None) -> None:
         if meta is None:
             meta = ""
         key = self._get_key(unique_id)
-        return self._client.set(key, meta, ex=ttl)
+        self._client.set(key, meta, ex=ttl)
 
-    def is_banned(self, unique_id):
+    def is_banned(self, unique_id) -> bool:
         key = self._get_key(unique_id)
         return self._client.get(key) is not None
 
-    def unban(self, unique_id: str):
+    def unban(self, unique_id: str) -> None:
         key = self._get_key(unique_id)
-        return self._client.delete(key)
+        self._client.delete(key)
 
 
 class RedisCounterBackend(CounterABC, RedisMixin):
@@ -91,7 +91,7 @@ class RedisCounterBackend(CounterABC, RedisMixin):
     def reset(self):
         self._reset_all()
 
-    def get(self, unique_id):
+    def get(self, unique_id) -> int:
         key = self._get_key(unique_id)
         count = self._client.get(
             key
@@ -100,13 +100,14 @@ class RedisCounterBackend(CounterABC, RedisMixin):
             return 0
         return int(count)
 
-    def increment(self, unique_id, number, ttl):
+    def increment(self, unique_id, number, ttl) -> int:
         key = self._get_key(unique_id)
         if self._client.get(key) is None:
             self._client.set(key, 0, ex=ttl)
         for x in range(number):
             self._client.incr(key)
+        return self.get(unique_id)
 
-    def delete(self, unique_id):
+    def delete(self, unique_id) -> None:
         key = self._get_key(unique_id)
         self._client.delete(key)
