@@ -16,7 +16,7 @@ install_requires = (
 )
 
 setup(
-    name='banish-utils',
+    name='ban-utils',
     version="0.0.1",
     install_requires=install_requires,
     description="django middleware to ban users, prevent too many concurrent connections",
