@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from banish_utils import store
+from ban_utils import store
 
 
 @pytest.fixture()

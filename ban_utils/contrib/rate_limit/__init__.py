@@ -1,6 +1,6 @@
 from functools import wraps
 
-from banish_utils.store import CounterABC, BanBackendABC
+from ban_utils.store import CounterABC, BanBackendABC
 
 
 def too_many2ban(
